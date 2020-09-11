@@ -7,32 +7,39 @@ namespace Task_31
     {
         static void Main(string[] args)
         {
-            Product products = new Product();
-            products.AddItemSeller("Колбаса", 10);
-            products.AddItemSeller("Пельмени", 30);
-            products.AddItemSeller("Сыр", 15);
-            products.AddItemSeller("Ветчина", 17);
-            products.AddItemSeller("Сосиски", 12);            
+            Player player = new Player();
+            Seller seller = new Seller();
+
+            seller.AddItem("Колбаса", 10);
+            seller.AddItem("Пельмени", 30);
+            seller.AddItem("Сыр", 15);
+            seller.AddItem("Ветчина", 17);
+            seller.AddItem("Сосиски", 12);            
 
             bool enterOrExit = true;
 
+            Console.Write("Сколько у вас рублей ? : ");
+            player.GetMoney(Convert.ToInt32(Console.ReadLine()));
+            Console.Clear();
+
             while (enterOrExit)
             {
-                RendererMoney(products);
+                Console.SetCursorPosition(100, 0);
+                Console.Write("У вас " + player.Money + " рублей");
+                Console.SetCursorPosition(0, 0);
 
                 Console.WriteLine("Выберите нужный пункт меню\n\n1 - посмотреть товары продавца\n\n2 - посмотреть свои вещи\n\n3 - купить товар продавца\n\n4 - выйти\n");
 
                 switch (Convert.ToInt32(Console.ReadLine()))
                 {
                     case 1:
-                        products.ShowItemsSeller();
+                        seller.ShowInventar();
                         break;
                     case 2:
-                        products.ShowItemsPlayer();
+                        player.ShowInventar();
                         break;
                     case 3:
-                        Console.WriteLine("Введите название товара : ");
-                        products.BuyItem(Console.ReadLine());
+                        BuyItem(player, seller);
                         break;
                     case 4:
                         enterOrExit = false;
@@ -44,18 +51,43 @@ namespace Task_31
             }
         }
 
-        private static void RendererMoney(Product products)
+        private static void BuyItem(Player player, Seller seller)
         {
-            Console.SetCursorPosition(100, 0);
-            Console.Write("У вас " + products.MoneyPlayer + " рублей");
-            Console.SetCursorPosition(0, 0);
+            Console.WriteLine("Введите название товара : ");
+            string productName = Console.ReadLine();
+
+            for (int i = 0; i < seller.InventarSeller.Count; i++)
+            {
+                if (productName == seller.InventarSeller[i].ProductName)
+                {
+                    if (player.Money >= seller.InventarSeller[i].Price)
+                    {
+                        player.AddItem(seller.InventarSeller[i].ProductName);
+
+                        player.BuyItem(seller.InventarSeller[i].Price);
+
+                        seller.InventarSeller.RemoveAt(i);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Не достаточно денег для покупки.");
+                    }
+                }
+            }
         }
     }
     class Player
     {
         private string _productName;
-        private Player _inventarPlayer;
-        
+        private List<Player> _inventarPlayer = new List<Player>();
+        private int _money;
+        public int Money
+        {
+            get
+            {
+                return _money;
+            }
+        }
         public string ProductName
         {
             get
@@ -63,83 +95,48 @@ namespace Task_31
                 return _productName;
             }
         }
-        public Player(string productName)
+        public Player(string productName = "")
         {
-            _productName = productName;
-        }        
-    }
-    class Product
-    {
-        private string _productName;
-        private int _productCost;
-        private int _moneyPlayer = 100;
-        private List<Seller> _inventarSeller = new List<Seller>();
-        private List<Player> _inventarPlayer = new List<Player>();
-        
-        public int MoneyPlayer
-        {
-            get
-            {
-                return _moneyPlayer;
-            }
+            _productName = productName;            
         }
-        public void AddItemSeller(string productName, int productCost)
+        public void AddItem(string productName)
         {
-            _productName = productName;
-            _productCost = productCost;
-            _inventarSeller.Add(new Seller(_productName, _productCost));
-        }        
-        public void ShowItemsSeller()
-        {
-            Console.WriteLine("У меня есть : ");
-            for (int i = 0; i < _inventarSeller.Count; i++)
-            {
-                Console.WriteLine($"\n{_inventarSeller[i].ProductName} - стоимость {_inventarSeller[i].Price} рублей.\n");
-            }
-        }
-        public void ShowItemsPlayer()
-        {
-            Console.WriteLine("В вашем инвентаре : ");
-            if(_inventarPlayer.Count > 0)
-            {
-                for (int i = 0; i < _inventarPlayer.Count; i++)
-                {
-                    Console.WriteLine($"{_inventarPlayer[i].ProductName}\n");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Нет предметов");
-            }
-        }
-        public void BuyItem(string productName)
-        {
-            for (int i = 0; i < _inventarSeller.Count; i++)
-            {                
-                if (productName == _inventarSeller[i].ProductName)
-                {
-                    if(_moneyPlayer >= _inventarSeller[i].Price)
-                    {
-                        _inventarPlayer.Add(new Player(_inventarSeller[i].ProductName));
+            Player player = new Player(productName);
 
-                        _inventarSeller.RemoveAt(i);
-
-                        _moneyPlayer -= _inventarSeller[i].Price;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Не достаточно денег для покупки.");
-                    }
-                }                
-            }
+            _inventarPlayer.Add(player);
+            Console.WriteLine(_inventarPlayer.Count);
         }
-    }
+        public void ShowInventar()
+        {
+            Player player = new Player();
+
+            for (int i = 0; i < _inventarPlayer.Count; i++)
+            {
+                Console.WriteLine(_inventarPlayer[i].ProductName);
+            }
+        }        
+        public void BuyItem(int price)
+        {
+            _money -= price;
+        }
+        public void GetMoney(int money)
+        {
+            _money = money;
+        }
+    }    
     class Seller
     {
         private string _productName;
         private int _price;
-        private Seller _inventarSeller;
-
+        private List<Seller> _inventarSeller = new List<Seller>();
+        Player player = new Player();
+        public List<Seller> InventarSeller
+        {
+            get
+            {
+                return _inventarSeller;
+            }
+        }
         public string ProductName
         {
             get
@@ -154,10 +151,25 @@ namespace Task_31
                 return _price;
             }
         }
-        public Seller(string productName, int price)
+        public Seller(string productName = "", int price = 0)
         {
             _productName = productName;
             _price = price;
+        }
+        public void AddItem( string productName, int price)
+        {
+            Seller seller = new Seller(productName, price);
+
+            _inventarSeller.Add(seller);
+        }
+        public void ShowInventar()
+        {
+            Console.WriteLine("У меня есть : ");
+
+            for (int i = 0; i < _inventarSeller.Count; i++)
+            {
+                Console.WriteLine($"\n{_inventarSeller[i]._productName} - стоимость {_inventarSeller[i]._price} рублей.\n");
+            }
         }        
     }
 }
