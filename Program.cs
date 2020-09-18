@@ -33,13 +33,13 @@ namespace Task_31
                 switch (Convert.ToInt32(Console.ReadLine()))
                 {
                     case 1:
-                        seller.ShowInventar();
+                        seller.ShowInventory(null, seller);
                         break;
                     case 2:
-                        player.ShowInventar();
+                        player.ShowInventory(player, null);
                         break;
                     case 3:
-                        BuyItem(player, seller);
+                        seller.BuyItem(player);
                         break;
                     case 4:
                         enterOrExit = false;
@@ -50,36 +50,9 @@ namespace Task_31
                 Console.Clear();
             }
         }
-
-        private static void BuyItem(Player player, Seller seller)
-        {
-            Console.WriteLine("Введите название товара : ");
-            string productName = Console.ReadLine();
-
-            for (int i = 0; i < seller.InventarSeller.Count; i++)
-            {
-                if (productName == seller.InventarSeller[i].ProductName)
-                {
-                    if (player.Money >= seller.InventarSeller[i].Price)
-                    {
-                        player.AddItem(seller.InventarSeller[i].ProductName);
-
-                        player.BuyItem(seller.InventarSeller[i].Price);
-
-                        seller.InventarSeller.RemoveAt(i);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Не достаточно денег для покупки.");
-                    }
-                }
-            }
-        }
     }
-    class Player
+    class Player : Inventar
     {
-        private string _productName;
-        private List<Player> _inventarPlayer = new List<Player>();
         private int _money;
         public int Money
         {
@@ -87,63 +60,27 @@ namespace Task_31
             {
                 return _money;
             }
-        }
-        public string ProductName
-        {
-            get
-            {
-                return _productName;
-            }
-        }
+        }        
         public Player(string productName = "")
         {
             _productName = productName;            
         }
-        public void AddItem(string productName)
+        public override void AddItem(string productName, int price)
         {
             Player player = new Player(productName);
-
+            
             _inventarPlayer.Add(player);
-            Console.WriteLine(_inventarPlayer.Count);
-        }
-        public void ShowInventar()
-        {
-            Player player = new Player();
-
-            for (int i = 0; i < _inventarPlayer.Count; i++)
-            {
-                Console.WriteLine(_inventarPlayer[i].ProductName);
-            }
-        }        
-        public void BuyItem(int price)
-        {
             _money -= price;
-        }
+        }                       
         public void GetMoney(int money)
         {
             _money = money;
-        }
+        }        
     }    
-    class Seller
+    class Seller : Inventar
     {
-        private string _productName;
-        private int _price;
-        private List<Seller> _inventarSeller = new List<Seller>();
-        Player player = new Player();
-        public List<Seller> InventarSeller
-        {
-            get
-            {
-                return _inventarSeller;
-            }
-        }
-        public string ProductName
-        {
-            get
-            {
-                return _productName;
-            }
-        }
+        private int _price;  
+        
         public int Price
         {
             get
@@ -156,20 +93,55 @@ namespace Task_31
             _productName = productName;
             _price = price;
         }
-        public void AddItem( string productName, int price)
+        public override void AddItem(string productName, int price )
         {
             Seller seller = new Seller(productName, price);
 
             _inventarSeller.Add(seller);
-        }
-        public void ShowInventar()
+        }        
+        public void BuyItem(Player player)
         {
-            Console.WriteLine("У меня есть : ");
+            Console.WriteLine("Введите название товара : ");
+            string productName = Console.ReadLine();
 
             for (int i = 0; i < _inventarSeller.Count; i++)
             {
-                Console.WriteLine($"\n{_inventarSeller[i]._productName} - стоимость {_inventarSeller[i]._price} рублей.\n");
+                if (productName == _inventarSeller[i]._productName)                
+                {
+                    if (player.Money >= _inventarSeller[i]._price)
+                    {
+                        player.AddItem(_inventarSeller[i]._productName, _inventarSeller[i]._price);
+
+                        _inventarSeller.RemoveAt(i);
+                    }                    
+                }
             }
-        }        
+        }
+    }
+    abstract class Inventar
+    {
+        protected string _productName;
+        protected List<Seller> _inventarSeller = new List<Seller>();
+        protected List<Player> _inventarPlayer = new List<Player>();
+        public void ShowInventory(Player player = null, Seller seller = null)
+        {  
+            Console.WriteLine("\nУ меня есть : ");
+
+            if (player != null)
+            {
+                for (int i = 0; i < _inventarPlayer.Count; i++)
+                {
+                    Console.WriteLine("\n" + _inventarPlayer[i]._productName + "\n");
+                }
+            }
+            if (seller != null)
+            {
+                for (int i = 0; i < _inventarSeller.Count; i++)
+                {
+                    Console.WriteLine($"\n{_inventarSeller[i]._productName} - стоимость {_inventarSeller[i].Price} рублей.\n");
+                }
+            }
+        }
+        public abstract void AddItem(string productName, int price);
     }
 }
