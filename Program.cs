@@ -39,7 +39,7 @@ namespace Task_31
                         player.ShowItems();
                         break;
                     case 3:
-                        seller.BuyItem(player);
+                        player.BuyItem(seller);
                         break;
                     case 4:
                         enterOrExit = false;
@@ -51,11 +51,36 @@ namespace Task_31
             }
         }
     }
+    class Product
+    {
+        private string _productName;
+        private int _price;
+
+        public int Price
+        {
+            get
+            {
+                return _price;
+            }
+        }
+        public Product(string productName, int price)
+        {
+            _productName = productName;
+            _price = price;
+        }
+        public void ShowItem()
+        {
+            Console.WriteLine($"\n{_productName} - стоимость {_price} рублей.\n");
+        }        
+        public bool SearshItem(string productName)
+        {
+            return productName == _productName;       
+        }
+    }
     class Player
     {
         private int _money;
-        private string _productName;
-        private List<Player> _inventory = new List<Player>();
+        private List<Product> _products = new List<Product>();
 
         public int Money
         {
@@ -63,10 +88,6 @@ namespace Task_31
             {
                 return _money;
             }
-        }        
-        public Player(string productName = "")
-        {
-            _productName = productName;
         }
         public void GetMoney(int money)
         {
@@ -74,58 +95,60 @@ namespace Task_31
         }
         public void ShowItems()
         {
-            for (int i = 0; i < _inventory.Count; i++)
+            for (int i = 0; i < _products.Count; i++)
             {
-                Console.WriteLine("\n" + _inventory[i]._productName + "\n");
+                _products[i].ShowItem();
             }            
         }
         public void AddItem(string productName, int price)
         {
-            Player player = new Player(productName);
-            _inventory.Add(player);
-            _money = price;
+            Product player = new Product(productName, price);
+            _products.Add(player);
+            _money -= price;
         }
-    }    
-    class Seller 
-    {
-        private int _price;
-        private string _productName;
-        private List<Seller> _inventory = new List<Seller>();
-        
-        public Seller(string productName = "", int price = 0)
-        {
-            _productName = productName;
-            _price = price;
-        }
-        public void AddItem(string productName, int price )
-        {
-            Seller seller = new Seller(productName, price);
-            _inventory.Add(seller);
-        }
-        public void ShowItems()
-        {
-            for (int i = 0; i < _inventory.Count; i++)
-            {
-                Console.WriteLine($"\n{_inventory[i]._productName} - стоимость {_inventory[i]._price} рублей.\n");
-            }            
-        }
-        public void BuyItem(Player player)
+        public void BuyItem(Seller seller)
         {
             Console.WriteLine("Введите название товара : ");
             string productName = Console.ReadLine();
 
-            for (int i = 0; i < _inventory.Count; i++)
-            {
-                if (productName == _inventory[i]._productName)                
-                {
-                    if (player.Money >= _inventory[i]._price)
-                    {
-                        player.AddItem(_inventory[i]._productName, _inventory[i]._price);
+            Product product = seller.SearchItem(productName);
 
-                        _inventory.RemoveAt(i);
-                    }                    
+            if(product != null)
+            {
+                if (_money >= product.Price)
+                {
+                    AddItem(productName, product.Price);
                 }
             }
+        }
+    }    
+    class Seller 
+    {
+        private List<Product> _products = new List<Product>();        
+        
+        public void AddItem(string productName, int price )
+        {
+            Product product = new Product(productName, price);
+            _products.Add(product);
+        }
+        public void ShowItems()
+        {
+            for (int i = 0; i < _products.Count; i++)
+            {
+                _products[i].ShowItem();
+            }            
+        }
+        public Product SearchItem(string productName)
+        {
+            Product product = null;
+            for (int i = 0; i < _products.Count; i++)
+            {
+                if (_products[i].SearshItem(productName))
+                {
+                    product = _products[i];                    
+                }
+            }
+            return product;
         }        
     }    
 }
