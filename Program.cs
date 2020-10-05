@@ -6,20 +6,15 @@ namespace Task_31
     class Program
     {
         static void Main(string[] args)
-        {
-            Player player = new Player();
-            Seller seller = new Seller();
+        {  
+            Product[] products = { new Product("Колбаса", 10), new Product("Пельмени", 30), new Product("Сыр", 15), new Product("Ветчина", 17), new Product("Сосиски", 12) };
 
-            seller.AddItem("Колбаса", 10);
-            seller.AddItem("Пельмени", 30);
-            seller.AddItem("Сыр", 15);
-            seller.AddItem("Ветчина", 17);
-            seller.AddItem("Сосиски", 12);            
+            Seller seller = new Seller(products);                      
 
             bool enterOrExit = true;
 
             Console.Write("Сколько у вас рублей ? : ");
-            player.GetMoney(Convert.ToInt32(Console.ReadLine()));
+            Player player = new Player(Convert.ToInt32(Console.ReadLine()));
             Console.Clear();
 
             while (enterOrExit)
@@ -39,7 +34,9 @@ namespace Task_31
                         player.ShowItems();
                         break;
                     case 3:
-                        player.BuyItem(seller);
+                        Console.WriteLine("Введите название товара : ");
+                        Product product = seller.SellItem(Console.ReadLine());
+                        player.BuyItem(product);
                         break;
                     case 4:
                         enterOrExit = false;
@@ -51,9 +48,25 @@ namespace Task_31
             }
         }
     }
+    class Npc
+    {
+        protected List<Product> Products = new List<Product>();
+
+        protected void AddItem(Product product)
+        {
+            Products.Add(product);
+        }
+        public void ShowItems()
+        {
+            for (int i = 0; i < Products.Count; i++)
+            {
+                Products[i].ShowInfo();
+            }
+        }
+    }
     class Product
     {
-        private string _productName;
+        private string _name;
         private int _price;
 
         public int Price
@@ -65,87 +78,62 @@ namespace Task_31
         }
         public Product(string productName, int price)
         {
-            _productName = productName;
+            _name = productName;
             _price = price;
         }
-        public void ShowItem()
+        public void ShowInfo()
         {
-            Console.WriteLine($"\n{_productName} - стоимость {_price} рублей.\n");
+            Console.WriteLine($"\n{_name} - стоимость {_price} рублей.\n");
         }        
         public bool SearshItem(string productName)
         {
-            return productName == _productName;       
+            return productName == _name;       
         }
     }
-    class Player
+    class Player : Npc
     {
         private int _money;
-        private List<Product> _products = new List<Product>();
-
+        public Player(int money)
+        {
+            _money = money;
+        }
         public int Money
         {
             get
             {
                 return _money;
             }
-        }
-        public void GetMoney(int money)
+        }       
+        public void BuyItem(Product product)
         {
-            _money = money;
-        }
-        public void ShowItems()
-        {
-            for (int i = 0; i < _products.Count; i++)
-            {
-                _products[i].ShowItem();
-            }            
-        }
-        public void AddItem(string productName, int price)
-        {
-            Product player = new Product(productName, price);
-            _products.Add(player);
-            _money -= price;
-        }
-        public void BuyItem(Seller seller)
-        {
-            Console.WriteLine("Введите название товара : ");
-            string productName = Console.ReadLine();
-
-            Product product = seller.SearchItem(productName);
-
             if(product != null)
             {
                 if (_money >= product.Price)
                 {
-                    AddItem(productName, product.Price);
+                    _money -= product.Price;
+                    AddItem(product);                    
                 }
             }
         }
     }    
-    class Seller 
+    class Seller : Npc
     {
-        private List<Product> _products = new List<Product>();        
-        
-        public void AddItem(string productName, int price )
+        public Seller(Product[] product)
         {
-            Product product = new Product(productName, price);
-            _products.Add(product);
-        }
-        public void ShowItems()
-        {
-            for (int i = 0; i < _products.Count; i++)
+            for (int i = 0; i < product.Length; i++)
             {
-                _products[i].ShowItem();
-            }            
+                AddItem(product[i]);
+            }
+            
         }
-        public Product SearchItem(string productName)
+        public Product SellItem(string productName)
         {
             Product product = null;
-            for (int i = 0; i < _products.Count; i++)
+            for (int i = 0; i < Products.Count; i++)
             {
-                if (_products[i].SearshItem(productName))
+                if (Products[i].SearshItem(productName))
                 {
-                    product = _products[i];                    
+                    product = Products[i];                    
                 }
             }
             return product;
