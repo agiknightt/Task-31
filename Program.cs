@@ -85,7 +85,7 @@ namespace Task_31
         {
             Console.WriteLine($"\n{_name} - стоимость {_price} рублей.\n");
         }        
-        public bool SearshItem(string productName)
+        public bool CompareName(string productName)
         {
             return productName == _name;       
         }
